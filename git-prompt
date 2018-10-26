@@ -19,112 +19,163 @@ BPurple="\[\033[1;35m\]"
 BCyan="\[\033[1;36m\]"
 BWhite="\[\033[1;37m\]"
 
-PROMPT_COMMAND=__prompt_command # Func to gen PS1 after CMDs
+GIT_INSTALLED="`which git`"
+if [[ $GIT_INSTALLED ]]; then
+    if [[ $PROMPT_COMMAND == "" ]]; then
+	export PROMPT_COMMAND="__git_prompt"
+    else
+	export PROMPT_COMMAND="$PROMPT_COMMAND;__git_prompt"
+    fi
+fi
 
-GIT_REMOTE_CHECK_INTERVAL=600
-GIT_REMOTE_CHECK_REPO=
-LAST_REMOTE_CHECK=$((`date '+%s'` - $GIT_REMOTE_CHECK_INTERVAL))
+GIT_PROMPT=1
+GIT_AUTOFETCH=1
+GIT_AUTOFETCH_INTERVAL=600
 
-__prompt_command() {
+GIT_LAST_ROOT=""
+GIT_LAST_BRANCH=""
+
+__git_prompt() {
     local EXIT="$?"             # This needs to be first
-    PS1=""
 
-    local GIT_BRANCH_STATUS="`git status -bs 2>&1 | head -1`"
+    if [[ $GIT_PROMPT != 0 ]]; then
 
-    if ! [[ "$GIT_BRANCH_STATUS" =~ Not\ a\ git\ repo ]]; then
+	local GIT_BRANCH_STATUS="`git status -bs 2>&1 | head -1`"
 
-	# Get branch name and upstream (if any)
-	if [[ "$GIT_BRANCH_STATUS" =~ \#\#\ ([^\ ]+)\.\.\.([^\ ]+) ]]; then
-	    GIT_BRANCH=${BASH_REMATCH[1]}
-	    GIT_UPSTREAM=${BASH_REMATCH[2]}
-	elif [[ "$GIT_BRANCH_STATUS" =~ \#\#\ ([^\ ]+) ]]; then
-	    GIT_BRANCH=${BASH_REMATCH[1]}
-	    GIT_UPSTREAM=""
-	fi
-
-	local GIT_ROOT="`git rev-parse --show-toplevel`"
-	
-	if [[ $GIT_UPSTREAM != "" ]]; then
-	    # Check remote branch every GIT_REMOTE_CHECK_INTERVAL seconds
-	    local CUR_TIME=`date '+%s'`
-	    if [ "$GIT_REMOTE_CHECK_REPO" != "$GIT_ROOT" ] || [ $(($CUR_TIME - $LAST_REMOTE_CHECK)) -gt $GIT_REMOTE_CHECK_INTERVAL ]; then
-		printf "\033[0;32m${GIT_BRANCH}:fetch..."
-		FETCH_INFO="`git fetch origin $GIT_BRANCH 2>&1`";
-		if [[ "$FETCH_INFO" =~ fatal ]]; then
-		    GIT_CONNECTED=false
-		else
-		    GIT_CONNECTED=true
-		fi
-		LAST_REMOTE_CHECK=`date '+%s'`
-		GIT_REMOTE_CHECK_REPO=$GIT_ROOT
-		printf "\r"
+	if ! [[ "$GIT_BRANCH_STATUS" =~ Not\ a\ git\ repo ]]; then
+	    PS1=""
+	    # Get branch name and upstream (if any)
+	    if [[ "$GIT_BRANCH_STATUS" =~ \#\#\ ([^\ ]+)\.\.\.([^\ ]+) ]]; then
+		GIT_BRANCH=${BASH_REMATCH[1]}
+		GIT_UPSTREAM=${BASH_REMATCH[2]}
+	    elif [[ "$GIT_BRANCH_STATUS" =~ \#\#\ ([^\ ]+) ]]; then
+		GIT_BRANCH=${BASH_REMATCH[1]}
+		GIT_UPSTREAM=""
 	    fi
 
-	    GIT_STATUS_STRING=""
+	    local GIT_ROOT="`git rev-parse --show-toplevel`"
 
-	    # Create status string
-	    local GIT_NEWSTATUS="`git rev-list --left-right --count ${GIT_BRANCH}...${GIT_UPSTREAM} 2>&1`"
+	    local AUTOFETCH=0
+	    # Trigger autofecth when changing repository.
+	    if [[ $GIT_LAST_ROOT != $GIT_ROOT ]]; then
+		AUTOFETCH=1
+		GIT_LAST_ROOT=$GIT_ROOT
+	    fi
 
-	    if [[ "$GIT_NEWSTATUS" =~ fatal ]] || [ $GIT_CONNECTED == "false" ]; then
-		GIT_STATUS_STRING="${Purple}(${Red}҂${Color_Off}${Purple})${Color_Off}"		
+	    # Trigger autofecth when changing branch.
+	    if [[ $GIT_LAST_BRANCH != $GIT_BRANCH ]]; then
+		AUTOFETCH=1
+		GIT_LAST_BRANCH=$GIT_BRANCH
+	    fi
+
+
+	    # Sync only if there is an upstream branch defined.
+	    if [[ $GIT_UPSTREAM != "" ]]; then
+
+		# Trigger autofetch every GIT_AUTOFETCH_INTERVAL since last fetch/pull.
+		if [[ $AUTOFETCH == 0 ]]; then
+
+		    # Get last fetch time from last_modified(.git/FETCH_HEAD)
+		    local LAST_FETCH="`stat -c %Y $GIT_ROOT/.git/FETCH_HEAD 2>&1`"
+		    if [[ "$LAST_FETCH" =~ ^([0-9]+)$ ]]; then
+			LAST_FETCH=${BASH_REMATCH[1]}
+		    else
+			LAST_FETCH=""
+		    fi
+
+		    # Compare it with current time
+		    local CUR_TIME=`date '+%s'`
+		    if [[ $LAST_FETCH == "" ]] || [[ $(($CUR_TIME - $LAST_FETCH)) -gt $GIT_AUTOFETCH_INTERVAL ]]; then
+			AUTOFETCH=1
+		    fi
+		fi
+		
+		# Autofetch.
+		if [[ $AUTOFETCH == 1 ]]; then
+		    # Notify in prompt.
+		    printf "\033[0;32m${GIT_BRANCH}:fetch..."
+		    # Fetch changes in current branch.
+		    FETCH_INFO="`git fetch origin $GIT_BRANCH 2>&1`";
+		    if [[ "$FETCH_INFO" =~ fatal ]]; then
+			GIT_CONNECTED=0
+		    else
+			GIT_CONNECTED=1
+		    fi
+		    # Overwrite line with full prompt.
+		    printf "\r"
+		fi
+
+
+		# Create status string.
+		GIT_STATUS_STRING=""
+
+		# Get commits ahead/behind relative to upstream.
+		local GIT_NEWSTATUS="`git rev-list --left-right --count ${GIT_BRANCH}...${GIT_UPSTREAM} 2>&1`"
+
+		# Check whether info is available.
+		local SYNC_INFO_AVAILABLE=1
+		if [[ "$GIT_NEWSTATUS" =~ fatal ]]; then
+		    SYNC_INFO_AVAILABLE=0
+		fi
+
+		# If not available or not connected, show broken connection symbol.
+		if [[ $SYNC_INFO_AVAILABLE == 0 ]] || [ $GIT_CONNECTED == 0 ]; then
+		    GIT_STATUS_STRING+="${Purple}(${Red}҂${Color_Off}${Purple})${Color_Off}"
+		fi
+
+		# Add upstream sync info to prompt.
+		if [[ $SYNC_INFO_AVAILABLE == 1 ]]; then
+		    local GIT_AHEAD=""
+		    local GIT_BEHIND=""
+		    if [[ "$GIT_NEWSTATUS" =~ ^([0-9]+) ]]; then
+			if [[ "${BASH_REMATCH[1]}" != "0" ]]; then
+			    GIT_AHEAD="${Green}${BASH_REMATCH[1]}↑${Color_Off}"
+			fi
+		    fi
+		    if [[ "$GIT_NEWSTATUS" =~ ([0-9]+)$ ]]; then
+			if [[ "${BASH_REMATCH[1]}" != "0" ]]; then
+			    GIT_BEHIND="${Red}${BASH_REMATCH[1]}↓${Color_Off}"
+			fi
+		    fi
+
+		    if [ "$GIT_AHEAD" != "" ]  && [ "$GIT_BEHIND" != "" ]; then
+			GIT_STATUS_STRING+="$Purple("${GIT_AHEAD}" "${GIT_BEHIND}"${Purple})${Color_Off}"
+		    elif [ "$GIT_AHEAD" != "" ]; then
+			GIT_STATUS_STRING+="$Purple("${GIT_AHEAD}"${Purple})${Color_Off}"
+		    elif [ "$GIT_BEHIND" != "" ]; then
+			GIT_STATUS_STRING+="$Purple("${GIT_BEHIND}"${Purple})${Color_Off}"
+		    fi
+		fi
+	    fi
+
+	    # Get path relative to repository root
+	    if [[ "$GIT_ROOT" =~ .*/([^/]+)$ ]]; then
+		local GIT_REPO_NAME=${BASH_REMATCH[1]}
+	    fi
+	    GIT_PATH=$GIT_REPO_NAME
+	    if [[ ${PWD} =~ ${GIT_ROOT}(.*$) ]]; then
+		GIT_PATH+=${BASH_REMATCH[1]}
+	    fi
+
+	    # Prompt git branch.
+	    PS1+="${Green}$GIT_BRANCH${Color_Off}"
+
+	    # Prompt sync status.
+	    if [[ $GIT_UPSTREAM != "" ]]; then
+		PS1+="${GIT_STATUS_STRING}"
 	    else
-		local GIT_AHEAD=""
-		local GIT_BEHIND=""
-		if [[ "$GIT_NEWSTATUS" =~ ^([0-9]+) ]]; then
-		    if [[ "${BASH_REMATCH[1]}" != "0" ]]; then
-			GIT_AHEAD="${Green}${BASH_REMATCH[1]}↑${Color_Off}"
-		    fi
-		fi
-		if [[ "$GIT_NEWSTATUS" =~ ([0-9]+)$ ]]; then
-		    if [[ "${BASH_REMATCH[1]}" != "0" ]]; then
-			GIT_BEHIND="${Red}${BASH_REMATCH[1]}↓${Color_Off}"
-		    fi
-		fi
+		PS1+="${Purple}(local)${Color_Off}"
+	    fi
+	    
+	    # Prompt host and git repository path.
+	    PS1+="${Purple}@${BBlue}\h${Color_Off}:g~${BPurple}${GIT_PATH}${Color_Off}"
 
-		if [ "$GIT_AHEAD" != "" ]  && [ "$GIT_BEHIND" != "" ]; then
-		    GIT_STATUS_STRING="$Purple("${GIT_AHEAD}" "${GIT_BEHIND}"${Purple})${Color_Off}"
-		elif [ "$GIT_AHEAD" != "" ]; then
-		    GIT_STATUS_STRING="$Purple("${GIT_AHEAD}"${Purple})${Color_Off}"
-		elif [ "$GIT_BEHIND" != "" ]; then
-		    GIT_STATUS_STRING="$Purple("${GIT_BEHIND}"${Purple})${Color_Off}"
-		fi
-	    fi	    
+	    if [ $EXIT != 0 ]; then
+		PS1+="${BRed}\$${Color_Off} "
+	    else
+		PS1+="${White}\$${Color_Off} "
+	    fi
 	fi
-
-	#TRACKING BRANCHES DE LACTUAL
-	#git rev-parse --abbrev-ref --symbolic-full-name LOCAL_BRANCH_NAME@{upstream}
-	
-	#DISTANCIA ENTRE BRANCHES
-	#git rev-list --left-right --count master...test-branch
-
-	# Simbols uparrow, downarrow, no remote: ҂
-
-	# Get path relative to git root
-
-	if [[ "$GIT_ROOT" =~ .*/([^/]+)$ ]]; then
-	    GIT_ROOT=${BASH_REMATCH[1]}
-	fi
-	GIT_PATH=$GIT_ROOT
-	if [[ ${PWD} =~ ${GIT_ROOT}(.*$) ]]; then
-	    GIT_PATH+=${BASH_REMATCH[1]}
-	fi
-
-	PS1+="${Green}$GIT_BRANCH${Color_Off}"
-	if [[ $GIT_UPSTREAM != "" ]]; then
-	    PS1+="${GIT_STATUS_STRING}"
-	else
-	    PS1+="${Purple}(local)${Color_Off}"
-	fi
-	PS1+="${Purple}@${BBlue}\h${Color_Off}:g~${BPurple}${GIT_PATH}${Color_Off}"
-    else
-	PS1+="${BGreen}\u${Color_Off}${Purple}@${BBlue}\h${Color_Off}:${BPurple}\w${Color_Off}"	
     fi
-
-    if [ $EXIT != 0 ]; then
-	PS1+="${BRed}\$${Color_Off} "
-    else
-	PS1+="${White}\$${Color_Off} "
-    fi
-
 
 }
