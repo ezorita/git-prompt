@@ -34,6 +34,7 @@ GIT_AUTOFETCH_INTERVAL=600
 
 GIT_LAST_ROOT=""
 GIT_LAST_BRANCH=""
+GIT_LAST_FETCH=`date '+%s'`
 
 __git_prompt() {
     local EXIT="$?"             # This needs to be first
@@ -76,16 +77,20 @@ __git_prompt() {
 		if [[ $AUTOFETCH == 0 ]]; then
 
 		    # Get last fetch time from last_modified(.git/FETCH_HEAD)
-		    local LAST_FETCH="`stat -c %Y $GIT_ROOT/.git/FETCH_HEAD 2>&1`"
-		    if [[ "$LAST_FETCH" =~ ^([0-9]+)$ ]]; then
-			LAST_FETCH=${BASH_REMATCH[1]}
-		    else
-			LAST_FETCH=""
+		    local LAST_FETCH_OUT="`stat -c \"%Y %s\" $GIT_ROOT/.git/FETCH_HEAD 2>&1`"
+		    if [[ "$LAST_FETCH_OUT" =~ ^([0-9]+)\ ([0-9]+)$ ]]; then
+			# If last fetch did not work (probably offline) file size is 0.
+			if [[ ${BASH_REMATCH[2]} != "0" ]]; then
+			    GIT_LAST_FETCH=${BASH_REMATCH[1]}
+			    GIT_ONLINE=1
+			else
+			    GIT_ONLINE=0
+			fi
 		    fi
 
 		    # Compare it with current time
 		    local CUR_TIME=`date '+%s'`
-		    if [[ $LAST_FETCH == "" ]] || [[ $(($CUR_TIME - $LAST_FETCH)) -gt $GIT_AUTOFETCH_INTERVAL ]]; then
+		    if [[ $GIT_LAST_FETCH == "" ]] || [[ $(($CUR_TIME - $GIT_LAST_FETCH)) -gt $GIT_AUTOFETCH_INTERVAL ]]; then
 			AUTOFETCH=1
 		    fi
 		fi
@@ -97,10 +102,12 @@ __git_prompt() {
 		    # Fetch changes in current branch.
 		    FETCH_INFO="`git fetch origin $GIT_BRANCH 2>&1`";
 		    if [[ "$FETCH_INFO" =~ fatal ]]; then
-			GIT_CONNECTED=0
+			GIT_ONLINE=0
 		    else
-			GIT_CONNECTED=1
+			GIT_ONLINE=1
 		    fi
+		    # This avoid constant retries when offline.
+		    GIT_LAST_FETCH=`date '+%s'`
 		    # Overwrite line with full prompt.
 		    printf "\r"
 		fi
@@ -119,7 +126,7 @@ __git_prompt() {
 		fi
 
 		# If not available or not connected, show broken connection symbol.
-		if [[ $SYNC_INFO_AVAILABLE == 0 ]] || [ $GIT_CONNECTED == 0 ]; then
+		if [[ $SYNC_INFO_AVAILABLE == 0 ]] || [ $GIT_ONLINE == 0 ]; then
 		    GIT_STATUS_STRING+="${Purple}(${Red}҂${Color_Off}${Purple})${Color_Off}"
 		fi
 
