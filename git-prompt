@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-##-ANSI-COLOR-CODES-##
+# Color codes.
 Color_Off="\[\033[0m\]"
-###-Regular-###
+
+# Regular colors
 Black="\[\033[0;35m\]"
 Red="\[\033[0;31m\]"
 Green="\[\033[0;32m\]"
@@ -11,7 +12,8 @@ Blue="\[\033[0;34m\]"
 Purple="\[\033[0;35m\]"
 Cyan="\[\033[0;36m\]"
 White="\[\033[0;37m\]"
-####-Bold-####
+
+# Bold colors
 BBlack="\[\033[1;35m\]"
 BRed="\[\033[1;31m\]"
 BGreen="\[\033[1;32m\]"
@@ -21,6 +23,7 @@ BPurple="\[\033[1;35m\]"
 BCyan="\[\033[1;36m\]"
 BWhite="\[\033[1;37m\]"
 
+# Append __git_prompt() to prompt commands
 GIT_INSTALLED="`which git`"
 if [[ $GIT_INSTALLED ]]; then
     if [[ $PROMPT_COMMAND == "" ]]; then
@@ -30,16 +33,18 @@ if [[ $GIT_INSTALLED ]]; then
     fi
 fi
 
+# Default parameters
 GIT_PROMPT=1
 GIT_AUTOFETCH=1
 GIT_AUTOFETCH_INTERVAL=600
 
+# Status variables
 GIT_LAST_ROOT=""
 GIT_LAST_BRANCH=""
 GIT_LAST_FETCH=`date '+%s'`
 
 __git_prompt() {
-    local EXIT="$?"             # This needs to be first
+    local EXIT="$?"
 
     if [[ $GIT_PROMPT != 0 ]]; then
 
@@ -47,7 +52,7 @@ __git_prompt() {
 
 	if ! [[ "$GIT_BRANCH_STATUS" =~ Not\ a\ git\ repo ]]; then
 	    PS1=""
-	    # Get branch name and upstream (if any)
+	    # Get branch name and upstream (if any).
 	    if [[ "$GIT_BRANCH_STATUS" =~ \#\#\ ([^\ ]+)\.\.\.([^\ ]+) ]]; then
 		GIT_BRANCH=${BASH_REMATCH[1]}
 		GIT_UPSTREAM=${BASH_REMATCH[2]}
@@ -81,7 +86,7 @@ __git_prompt() {
 		    # Get last fetch time from last_modified(.git/FETCH_HEAD)
 		    local LAST_FETCH_OUT="`stat -c \"%Y %s\" $GIT_ROOT/.git/FETCH_HEAD 2>&1`"
 		    if [[ "$LAST_FETCH_OUT" =~ ^([0-9]+)\ ([0-9]+)$ ]]; then
-			# If last fetch did not work (probably offline) file size is 0.
+			# File size is 0 If last fetch did not work (probably offline).
 			if [[ ${BASH_REMATCH[2]} != "0" ]]; then
 			    GIT_LAST_FETCH=${BASH_REMATCH[1]}
 			    GIT_ONLINE=1
@@ -108,7 +113,7 @@ __git_prompt() {
 		    else
 			GIT_ONLINE=1
 		    fi
-		    # This avoid constant retries when offline.
+		    # This avoids constant retries when offline.
 		    GIT_LAST_FETCH=`date '+%s'`
 		    # Overwrite line with full prompt.
 		    printf "\r"
