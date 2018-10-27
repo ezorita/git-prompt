@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 ##-ANSI-COLOR-CODES-##
 Color_Off="\[\033[0m\]"
 ###-Regular-###
