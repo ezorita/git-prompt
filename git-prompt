@@ -24,7 +24,7 @@ BCyan="\[\033[1;36m\]"
 BWhite="\[\033[1;37m\]"
 
 # Append __git_prompt() to prompt commands
-GIT_INSTALLED="`which git`"
+GIT_INSTALLED="$(which git)"
 if [[ $GIT_INSTALLED ]]; then
     if [[ $PROMPT_COMMAND == "" ]]; then
 	export PROMPT_COMMAND="__git_prompt"
@@ -41,16 +41,16 @@ GIT_AUTOFETCH_INTERVAL=600
 # Status variables
 GIT_LAST_ROOT=""
 GIT_LAST_BRANCH=""
-GIT_LAST_FETCH=`date '+%s'`
+GIT_LAST_FETCH=$(date '+%s')
 
 __git_prompt() {
     local EXIT="$?"
 
     if [[ $GIT_PROMPT != 0 ]]; then
 
-	local GIT_BRANCH_STATUS="`git status -bs 2>&1 | head -1`"
+	local GIT_BRANCH_STATUS="$(git status -bs 2>&1 | head -1)"
 
-	if ! [[ "$GIT_BRANCH_STATUS" =~ Not\ a\ git\ repo ]]; then
+	if ! [[ "$GIT_BRANCH_STATUS" =~ fatal ]]; then
 	    PS1=""
 	    # Get branch name and upstream (if any).
 	    if [[ "$GIT_BRANCH_STATUS" =~ \#\#\ ([^\ ]+)\.\.\.([^\ ]+) ]]; then
@@ -61,7 +61,7 @@ __git_prompt() {
 		GIT_UPSTREAM=""
 	    fi
 
-	    local GIT_ROOT="`git rev-parse --show-toplevel`"
+	    local GIT_ROOT="$(git rev-parse --show-toplevel)"
 
 	    local AUTOFETCH=0
 	    # Trigger autofecth when changing repository.
@@ -84,7 +84,7 @@ __git_prompt() {
 		if [[ $AUTOFETCH == 0 ]]; then
 
 		    # Get last fetch time from last_modified(.git/FETCH_HEAD)
-		    local LAST_FETCH_OUT="`stat -c \"%Y %s\" $GIT_ROOT/.git/FETCH_HEAD 2>&1`"
+		    local LAST_FETCH_OUT="$(stat -c \"%Y %s\" $GIT_ROOT/.git/FETCH_HEAD 2>&1)"
 		    if [[ "$LAST_FETCH_OUT" =~ ^([0-9]+)\ ([0-9]+)$ ]]; then
 			# File size is 0 If last fetch did not work (probably offline).
 			if [[ ${BASH_REMATCH[2]} != "0" ]]; then
@@ -96,7 +96,7 @@ __git_prompt() {
 		    fi
 
 		    # Compare it with current time
-		    local CUR_TIME=`date '+%s'`
+		    local CUR_TIME=$(date '+%s')
 		    if [[ $GIT_LAST_FETCH == "" ]] || [[ $(($CUR_TIME - $GIT_LAST_FETCH)) -gt $GIT_AUTOFETCH_INTERVAL ]]; then
 			AUTOFETCH=1
 		    fi
@@ -107,14 +107,14 @@ __git_prompt() {
 		    # Notify in prompt.
 		    printf "\033[0;32m${GIT_BRANCH}:fetch..."
 		    # Fetch changes in current branch.
-		    FETCH_INFO="`git fetch origin $GIT_BRANCH 2>&1`";
+		    FETCH_INFO="$(git fetch origin $GIT_BRANCH 2>&1)";
 		    if [[ "$FETCH_INFO" =~ fatal ]]; then
 			GIT_ONLINE=0
 		    else
 			GIT_ONLINE=1
 		    fi
 		    # This avoids constant retries when offline.
-		    GIT_LAST_FETCH=`date '+%s'`
+		    GIT_LAST_FETCH=$(date '+%s')
 		    # Overwrite line with full prompt.
 		    printf "\r"
 		fi
@@ -124,7 +124,7 @@ __git_prompt() {
 		GIT_STATUS_STRING=""
 
 		# Get commits ahead/behind relative to upstream.
-		local GIT_NEWSTATUS="`git rev-list --left-right --count ${GIT_BRANCH}...${GIT_UPSTREAM} 2>&1`"
+		local GIT_NEWSTATUS="$(git rev-list --left-right --count ${GIT_BRANCH}...${GIT_UPSTREAM} 2>&1)"
 
 		# Check whether info is available.
 		local SYNC_INFO_AVAILABLE=1
