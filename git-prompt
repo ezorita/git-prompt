@@ -46,19 +46,19 @@ BCyan="\[\033[1;36m\]"
 BWhite="\[\033[1;37m\]"
 
 # Color parameters
-User_color=${BGreen}
-At_color=${Purple}
-Host_color=${BBlue}
-Path_color=${BPurple}
+User_color=${User_color:-$BGreen}
+At_color=${At_color:-$Purple}
+Host_color=${Host_color:-$BBlue}
+Path_color=${Path_color:-$BPurple}
 
-Branch_color=${Green}
-Ahead_color=${Green}
-Behind_color=${Red}
-NoSync_color=${Red}
-Fetch_color="\033[0;32m"
-Git_color=${White}
-Prompt_color=${White}
-Prompt_error_color=${BRed}
+Branch_color=${Branch_color:-$Green}
+Ahead_color=${Ahead_color:-$Green}
+Behind_color=${Behind_color:-$Red}
+NoSync_color=${NoSync_color:-$Red}
+Fetch_color=${Fetch_color:-"\033[0;32m"}
+Git_color=${Git_color:-$White}
+Prompt_color=${Prompt_color:-$White}
+Prompt_error_color=${Prompt_error_color:-$BRed}
 
 # Prompt parameters
 Force_Default_Prompt=0
@@ -83,9 +83,9 @@ if [[ $GIT_INSTALLED ]]; then
 fi
 
 # Default parameters
-GIT_PROMPT=1
-GIT_AUTOFETCH=1
-GIT_AUTOFETCH_INTERVAL=600
+GIT_PROMPT=${GIT_PROMPT:-1}
+GIT_AUTOFETCH=${GIT_AUTOFETCH:-1}
+GIT_AUTOFETCH_INTERVAL=${GIT_AUTOFETCH_INTERVAL:-600}
 GIT_ONLINE=1
 
 # Status variables
@@ -129,43 +129,46 @@ __git_prompt() {
 	    # Sync only if there is an upstream branch defined.
 	    if [[ $GIT_UPSTREAM != "" ]]; then
 
-		# Trigger autofetch every GIT_AUTOFETCH_INTERVAL since last fetch/pull.
-		if [[ $AUTOFETCH == 0 ]]; then
-		    
-		    # Get last fetch time from last_modified(.git/FETCH_HEAD)
-		    local LAST_FETCH_OUT=$(stat -c "%Y %s" $GIT_ROOT/.git/FETCH_HEAD 2>&1)
-		    if [[ "$LAST_FETCH_OUT" =~ ^([0-9]+)\ ([0-9]+)$ ]]; then
-			# File size is 0 If last fetch did not work (probably offline).
-			if [[ ${BASH_REMATCH[2]} != "0" ]]; then
-			    GIT_LAST_FETCH=${BASH_REMATCH[1]}
-			    GIT_ONLINE=1
-			else
-			    GIT_ONLINE=0
+		if [[ $GIT_AUTOFETCH == 1 ]]; then
+
+		    # Trigger autofetch every GIT_AUTOFETCH_INTERVAL since last fetch/pull.
+		    if [[ $AUTOFETCH == 0 ]]; then
+			
+			# Get last fetch time from last_modified(.git/FETCH_HEAD)
+			local LAST_FETCH_OUT=$(stat -c "%Y %s" $GIT_ROOT/.git/FETCH_HEAD 2>&1)
+			if [[ "$LAST_FETCH_OUT" =~ ^([0-9]+)\ ([0-9]+)$ ]]; then
+			    # File size is 0 If last fetch did not work (probably offline).
+			    if [[ ${BASH_REMATCH[2]} != "0" ]]; then
+				GIT_LAST_FETCH=${BASH_REMATCH[1]}
+				GIT_ONLINE=1
+			    else
+				GIT_ONLINE=0
+			    fi
+			fi
+
+			# Compare it with current time
+			local CUR_TIME=$(date '+%s')
+			if [[ $GIT_LAST_FETCH == "" ]] || [[ $(($CUR_TIME - $GIT_LAST_FETCH)) -gt $GIT_AUTOFETCH_INTERVAL ]]; then
+			    AUTOFETCH=1
 			fi
 		    fi
-
-		    # Compare it with current time
-		    local CUR_TIME=$(date '+%s')
-		    if [[ $GIT_LAST_FETCH == "" ]] || [[ $(($CUR_TIME - $GIT_LAST_FETCH)) -gt $GIT_AUTOFETCH_INTERVAL ]]; then
-			AUTOFETCH=1
+		    
+		    # Autofetch.
+		    if [[ $AUTOFETCH == 1 ]]; then
+			# Notify in prompt.
+			printf "${Fetch_color}${GIT_BRANCH}:fetch...\033[0m"
+			# Fetch changes in current branch.
+			FETCH_INFO=$(git fetch origin $GIT_BRANCH 2>&1)
+			if [[ "$FETCH_INFO" =~ fatal ]]; then
+			    GIT_ONLINE=0
+			else
+			    GIT_ONLINE=1
+			fi
+			# This avoids constant retries when offline.
+			GIT_LAST_FETCH=$(date '+%s')
+			# Overwrite line with full prompt.
+			printf "\r"
 		    fi
-		fi
-		
-		# Autofetch.
-		if [[ $AUTOFETCH == 1 ]]; then
-		    # Notify in prompt.
-		    printf "${Fetch_color}${GIT_BRANCH}:fetch...\033[0m"
-		    # Fetch changes in current branch.
-		    FETCH_INFO=$(git fetch origin $GIT_BRANCH 2>&1)
-		    if [[ "$FETCH_INFO" =~ fatal ]]; then
-			GIT_ONLINE=0
-		    else
-			GIT_ONLINE=1
-		    fi
-		    # This avoids constant retries when offline.
-		    GIT_LAST_FETCH=$(date '+%s')
-		    # Overwrite line with full prompt.
-		    printf "\r"
 		fi
 
 
