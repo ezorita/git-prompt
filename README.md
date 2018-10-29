@@ -22,6 +22,13 @@ printf "\nsource $(pwd)/git-prompt/git-prompt" >> .bash_profile
 ## Features
 It's terribly simple:
 
+![](https://i.imgur.com/Ib5NlHT.jpg)
+
+- ![](https://i.imgur.com/DduOQvp.jpg) Current branch
+- ![](https://i.imgur.com/1ZsfjQZ.jpg) Sync status
+- ![](https://i.imgur.com/Bk4xkk9.jpg) Commits ahead/behind remote branch
+- ![](https://i.imgur.com/cM9C0gq.jpg) Path relative to repository root
+
 ### Seamless
 Automatically turns on when you `cd` in a git repository.
 
