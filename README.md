@@ -70,6 +70,9 @@ Just set the environment variables.
 
 ![](https://i.imgur.com/Rfed9Wh.gif)
 
+## Compatibility
+`git v1.9.1`
+
 ## Issues and bugs
 Feel free to [open a new issue](https://github.com/ezorita/git-prompt/issues/new) if you find a bug or have feature suggestions.
 
