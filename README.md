@@ -55,7 +55,7 @@ Alerts when the last `fetch` has failed.
 ![](https://i.imgur.com/27yMkO7.gif)
 
 ### Easy to turn on and off
-Just type `GIT_PROMPT=0` or `gitpr` and _voilà_, you're back to your default prompt.
+Type `GIT_PROMPT=0` or `gitpr` and _voilà_, you're back to your default prompt.
 
 ![](https://i.imgur.com/I46F2Lu.gif)
 
