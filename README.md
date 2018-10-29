@@ -81,7 +81,7 @@ Parameter                     | Description
 **Force_Default_Prompt**      | Overwrite the default prompt as well (values `1`/`0`) [default `0`]
 
 ### Colors
-Colors can be also customized setting the following parameters with color escape sequences:
+Colors can be also customized setting the following parameters with [`\[ ... \]`-escaped color sequences](https://stackoverflow.com/a/33206814/2545706):
 
 Parameter                     | Description
 ----------------------------- | --------------------------------------
@@ -93,7 +93,7 @@ Parameter                     | Description
 **Ahead_color**               | Color of the commits ahead indicator [default _Green_]
 **Behind_color**              | Color of the commits behind indicator [default _Red_]
 **NoSync_color**              | Color of the out-of-sync symbol [default _Red_]
-**Fetch_color**               | Color of the `fetch...` message (do not escape `\[..\]`) [default `\033[0;32m`]
+**Fetch_color**               | Color of the `fetch...` message (do not escape with `\[...\]`) [default `\033[0;32m`]
 **Git_color**                 | Color of the git prompt indicator `:g~` [default _White_]
 **Prompt_color**              | Color of the prompt `$` [default _White_]
 **Prompt_error_color**        | Color of the prompt `$` when the last command failed [default _Bold Red_]
