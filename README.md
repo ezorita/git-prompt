@@ -70,6 +70,34 @@ Just set the environment variables.
 
 ![](https://i.imgur.com/Rfed9Wh.gif)
 
+## Options
+Options can be set directly in the terminal or, if you want to set them permanently, define them anywhere in your `.bashrc` or `.bash_profile` file:
+
+Parameter                     | Description
+----------------------------- | --------------------------------------
+**GIT_PROMPT**                | Enables/disables `git-prompt` (values `1`/`0`) [default `1`]
+**GIT_AUTOFECTH**             | Enables/disables autofecth (values`1`/`0`) [default `1`]
+**GIT_AUTOFECTH_INTERVAL**    | Autofetch interval (in seconds) [default `600`]
+**Force_Default_Prompt**      | Overwrite the default prompt as well (values `1`/`0`) [default `0`]
+
+### Colors
+Colors can be also customized setting the following parameters with color escape sequences:
+
+Parameter                     | Description
+----------------------------- | --------------------------------------
+**User_color**                | Color of the user field [default _Bold Green_]
+**At_color**                  | Color of the `@` symbol [default _Purple_]
+**Host_color**                | Color of the host field [default _Bold Blue_]
+**Path_color**                | Color of the path field [default _Bold Purple_]
+**Branch_color**              | Color of the current branch name [default _Green_]
+**Ahead_color**               | Color of the commits ahead indicator [default _Green_]
+**Behind_color**              | Color of the commits behind indicator [default _Red_]
+**NoSync_color**              | Color of the out-of-sync symbol [default _Red_]
+**Fetch_color**               | Color of the `fetch...` message (do not escape `\[..\]`) [default `\033[0;32m`]
+**Git_color**                 | Color of the git prompt indicator `:g~` [default _White_]
+**Prompt_color**              | Color of the prompt `$` [default _White_]
+**Prompt_error_color**        | Color of the prompt `$` when the last command failed [default _Bold Red_]
+
 ## Compatibility
 `git v1.9.1`
 
