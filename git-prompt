@@ -61,7 +61,7 @@ Prompt_color=${Prompt_color:-$White}
 Prompt_error_color=${Prompt_error_color:-$BRed}
 
 # Prompt parameters
-Force_Default_Prompt=0
+Force_Default_Prompt=${Force_Default_Prompt:-0}
 
 # Append __git_prompt() to prompt commands
 GIT_INSTALLED=$(which git)
