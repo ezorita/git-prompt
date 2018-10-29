@@ -23,12 +23,35 @@ BPurple="\[\033[1;35m\]"
 BCyan="\[\033[1;36m\]"
 BWhite="\[\033[1;37m\]"
 
+# Color parameters
+User_color=${BGreen}
+At_color=${Purple}
+Host_color=${BBlue}
+Path_color=${BPurple}
+
+Branch_color=${Green}
+Ahead_color=${Green}
+Behind_color=${Red}
+NoSync_color=${Red}
+Fetch_color="\033[0;32m"
+Git_color=${White}
+Prompt_color=${White}
+Prompt_error_color=${BRed}
+
+# Prompt parameters
+Force_Normal_Prompt=0
+
 # Append __git_prompt() to prompt commands
 GIT_INSTALLED="$(which git)"
 if [[ $GIT_INSTALLED ]]; then
     if [[ $PROMPT_COMMAND == "" ]]; then
-	export PROMPT_COMMAND="__git_prompt"
-    else
+	if [[ $PS1 == "" || $Force_Normal_Prompt == 1 ]]; then
+	    export PROMPT_COMMAND="__normal_prompt;__git_prompt"
+	else
+	    NORMAL_PS1=${PS1}
+	    export PROMPT_COMMAND="__git_prompt"
+	fi
+    elif ! [[ $PROMPT_COMMAND =~ git_prompt ]]; then
 	export PROMPT_COMMAND="$PROMPT_COMMAND;__git_prompt"
     fi
 fi
@@ -105,7 +128,7 @@ __git_prompt() {
 		# Autofetch.
 		if [[ $AUTOFETCH == 1 ]]; then
 		    # Notify in prompt.
-		    printf "\033[0;32m${GIT_BRANCH}:fetch..."
+		    printf "${Fetch_color}${GIT_BRANCH}:fetch...\033[0m"
 		    # Fetch changes in current branch.
 		    FETCH_INFO="$(git fetch origin $GIT_BRANCH 2>&1)";
 		    if [[ "$FETCH_INFO" =~ fatal ]]; then
@@ -134,7 +157,7 @@ __git_prompt() {
 
 		# If not available or not connected, show broken connection symbol.
 		if [[ $SYNC_INFO_AVAILABLE == 0 ]] || [ $GIT_ONLINE == 0 ]; then
-		    GIT_STATUS_STRING+="${Purple}(${Red}҂${Color_Off}${Purple})${Color_Off}"
+		    GIT_STATUS_STRING+="${At_color}(${Color_off}${NoSync_color}҂${Color_Off}${At_color})${Color_Off}"
 		fi
 
 		# Add upstream sync info to prompt.
@@ -143,21 +166,21 @@ __git_prompt() {
 		    local GIT_BEHIND=""
 		    if [[ "$GIT_NEWSTATUS" =~ ^([0-9]+) ]]; then
 			if [[ "${BASH_REMATCH[1]}" != "0" ]]; then
-			    GIT_AHEAD="${Green}${BASH_REMATCH[1]}↑${Color_Off}"
+			    GIT_AHEAD="${Ahead_color}${BASH_REMATCH[1]}↑${Color_Off}"
 			fi
 		    fi
 		    if [[ "$GIT_NEWSTATUS" =~ ([0-9]+)$ ]]; then
 			if [[ "${BASH_REMATCH[1]}" != "0" ]]; then
-			    GIT_BEHIND="${Red}${BASH_REMATCH[1]}↓${Color_Off}"
+			    GIT_BEHIND="${Behind_color}${BASH_REMATCH[1]}↓${Color_Off}"
 			fi
 		    fi
 
 		    if [ "$GIT_AHEAD" != "" ]  && [ "$GIT_BEHIND" != "" ]; then
-			GIT_STATUS_STRING+="$Purple("${GIT_AHEAD}" "${GIT_BEHIND}"${Purple})${Color_Off}"
+			GIT_STATUS_STRING+="${At_color}(${Color_off}"${GIT_AHEAD}" "${GIT_BEHIND}"${At_color})${Color_Off}"
 		    elif [ "$GIT_AHEAD" != "" ]; then
-			GIT_STATUS_STRING+="$Purple("${GIT_AHEAD}"${Purple})${Color_Off}"
+			GIT_STATUS_STRING+="${At_color}(${Color_off}"${GIT_AHEAD}"${At_color})${Color_Off}"
 		    elif [ "$GIT_BEHIND" != "" ]; then
-			GIT_STATUS_STRING+="$Purple("${GIT_BEHIND}"${Purple})${Color_Off}"
+			GIT_STATUS_STRING+="${At_color}(${Color_off}"${GIT_BEHIND}"${At_color})${Color_Off}"
 		    fi
 		fi
 	    fi
@@ -172,24 +195,40 @@ __git_prompt() {
 	    fi
 
 	    # Prompt git branch.
-	    PS1+="${Green}$GIT_BRANCH${Color_Off}"
+	    PS1+="${Branch_color}$GIT_BRANCH${Color_Off}"
 
 	    # Prompt sync status.
 	    if [[ $GIT_UPSTREAM != "" ]]; then
 		PS1+="${GIT_STATUS_STRING}"
 	    else
-		PS1+="${Purple}(local)${Color_Off}"
+		PS1+="${At_color}(local)${Color_Off}"
 	    fi
 	    
 	    # Prompt host and git repository path.
-	    PS1+="${Purple}@${BBlue}\h${Color_Off}:g~${BPurple}${GIT_PATH}${Color_Off}"
+	    PS1+="${At_color}@${Color_Off}${Host_color}\h${Color_Off}${Git_color}:g~${Color_Off}${Path_color}${GIT_PATH}${Color_Off}"
 
 	    if [ $EXIT != 0 ]; then
-		PS1+="${BRed}\$${Color_Off} "
+		PS1+="${Prompt_error_color}\$${Color_Off} "
 	    else
-		PS1+="${White}\$${Color_Off} "
+		PS1+="${Prompt_color}\$${Color_Off} "
 	    fi
+	elif [[ ${PROMPT_COMMAND} == "__git_prompt" ]]; then
+	    PS1=${NORMAL_PS1}
 	fi
+    elif [[ ${PROMPT_COMMAND} == "__git_prompt" ]]; then
+	PS1=${NORMAL_PS1}
     fi
 
+}
+
+__normal_prompt() {
+    local EXIT="$?"
+    
+    PS1="${User_color}\u${At_color}@${Host_color}\h${Colon_color}:${Path_color}\w${Color_Off}"
+    
+    if [[ $EXIT != 0 ]]; then
+	PS1+="${Prompt_error_color}\$${Color_Off}"
+    else
+	PS1+="${Prompt_color}\$${Color_Off}"
+    fi
 }
