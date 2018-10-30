@@ -68,16 +68,16 @@ GIT_INSTALLED=$(which git)
 if [[ $GIT_INSTALLED ]]; then
     if [[ $PROMPT_COMMAND == "" ]]; then
 	if [[ $PS1 == "" || $Force_Default_Prompt == 1 ]]; then
-	    export PROMPT_COMMAND="__default_prompt;__git_prompt"
+	    export PROMPT_COMMAND="__set_exit_code;__default_prompt;__git_prompt"
 	else
 	    DEFAULT_PS1=${PS1}
-	    export PROMPT_COMMAND="__git_prompt"
+	    export PROMPT_COMMAND="__set_exit_code;__git_prompt"
 	fi
     elif ! [[ $PROMPT_COMMAND =~ git_prompt ]]; then
 	if [[ $Force_Default_Prompt == 1 ]]; then
-	    export PROMPT_COMMAND="$PROMPT_COMMAND;__default_prompt;__git_prompt"
+	    export PROMPT_COMMAND="__set_exit_code;$PROMPT_COMMAND;__default_prompt;__git_prompt"
 	else
-	    export PROMPT_COMMAND="$PROMPT_COMMAND;__git_prompt"
+	    export PROMPT_COMMAND="__set_exit_code;$PROMPT_COMMAND;__git_prompt"
 	fi
     fi
 fi
@@ -93,9 +93,11 @@ GIT_LAST_ROOT=""
 GIT_LAST_BRANCH=""
 GIT_LAST_FETCH=$(date '+%s')
 
-__git_prompt() {
-    local EXIT="$?"
+__set_exit_code() {
+    LAST_EXIT_CODE="$?"
+}
 
+__git_prompt() {
     if [[ $GIT_PROMPT != 0 ]]; then
 
 	local GIT_BRANCH_STATUS=$(git status -bs 2>&1 | head -1)
@@ -238,7 +240,7 @@ __git_prompt() {
 	    # Prompt host and git repository path.
 	    PS1+="${At_color}@${Color_Off}${Host_color}\h${Color_Off}${Git_color}:g~${Color_Off}${Path_color}${GIT_PATH}${Color_Off}"
 
-	    if [ $EXIT != 0 ]; then
+	    if [[ $LAST_EXIT_CODE != 0 ]]; then
 		PS1+="${Prompt_error_color}\$${Color_Off} "
 	    else
 		PS1+="${Prompt_color}\$${Color_Off} "
@@ -246,6 +248,7 @@ __git_prompt() {
 	elif [[ ${PROMPT_COMMAND} == "__git_prompt" ]]; then
 	    PS1=${DEFAULT_PS1}
 	fi
+	
     elif [[ ${PROMPT_COMMAND} == "__git_prompt" ]]; then
 	PS1=${DEFAULT_PS1}
     fi
@@ -253,11 +256,9 @@ __git_prompt() {
 }
 
 __default_prompt() {
-    local EXIT="$?"
-    
     PS1="${User_color}\u${At_color}@${Host_color}\h${Colon_color}:${Path_color}\w${Color_Off}"
-    
-    if [[ $EXIT != 0 ]]; then
+
+    if [[ $LAST_EXIT_CODE != 0 ]]; then
 	PS1+="${Prompt_error_color}\$${Color_Off} "
     else
 	PS1+="${Prompt_color}\$${Color_Off} "
