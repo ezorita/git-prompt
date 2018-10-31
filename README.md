@@ -5,18 +5,16 @@ With `git-prompt` you'll _hopefully_ never find yourself again in the following 
 - or even worse, `commiting` and `pushing` to the wrong branch :scream:
 
 ## Install
-Easy to install, just three simple steps:
+Easy to install, just two simple steps:
 #### Linux
 ```bash
-cd ~
 git clone -q https://github.com/ezorita/git-prompt
-printf "\nsource $(pwd)/git-prompt/git-prompt" >> .bashrc
+printf "\nsource $(pwd)/git-prompt/git-prompt" >> ~/.bashrc
 ```
 #### MacOS
 ```bash
-cd ~
 git clone -q https://github.com/ezorita/git-prompt
-printf "\nsource $(pwd)/git-prompt/git-prompt" >> .bash_profile
+printf "\nsource $(pwd)/git-prompt/git-prompt" >> ~/.bash_profile
 ```
 
 ## Features
