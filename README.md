@@ -27,32 +27,32 @@ It's terribly simple:
 - ![](https://i.imgur.com/Bk4xkk9.jpg) Commits ahead/behind remote branch
 - ![](https://i.imgur.com/cM9C0gq.jpg) Path relative to repository root
 
-### Seamless
+### 1. Seamless
 Automatically turns on when you `cd` in a git repository.
 
 ![](https://i.imgur.com/5pyXgNM.gif)
 
-### Focus on your repo
-Shown path is relative to your repository root.
+### 2. Focus on your repo
+Working directory in prompt is relative to your repository root.
 
 ![](https://i.imgur.com/Ke1SHqg.gif)
 
-### Autofetch
+### 3. Autofetch
 No need to `fetch` anymore. It will automatically `fetch` your current branch every 10 (default) minutes.
 
 ![](https://i.imgur.com/y7aP1XK.gif)
 
-### What's new?
+### 4. What's new?
 Automatically `fetches` when you `cd` to a git repository or change branch.
 
 ![](https://i.imgur.com/ozQr0Yb.gif)
 
-### You're out of sync!
+### 5. You're out of sync!
 Alerts when the last `fetch` has failed.
 
 ![](https://i.imgur.com/27yMkO7.gif)
 
-### Easy to turn on and off
+### 6. Easy to turn on and off
 Type `GIT_PROMPT=0` or `gitpr` and _voilà_, you're back to your default prompt.
 
 ![](https://i.imgur.com/I46F2Lu.gif)
@@ -63,7 +63,7 @@ Here is the alias definition, add it to your bash options file:
 alias gitpr='GIT_PROMPT=$((1-{$GIT_PROMPT}))'
 ```
 
-### Easy to customize
+### 7. Easy to customize
 Just set the environment variables.
 
 ![](https://i.imgur.com/Rfed9Wh.gif)
