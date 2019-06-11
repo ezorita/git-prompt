@@ -102,7 +102,7 @@ __git_prompt() {
 
 	local GIT_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @ 2>&1)
 
-	if [[ "$GIT_BRANCH" =~ "Not a git repository" ]]; then
+	if [[ "$GIT_BRANCH" =~ "ot a git repository" ]]; then
 	    if [[ ${PROMPT_COMMAND} == "__git_prompt" ]]; then
 		PS1=${DEFAULT_PS1}
 	    fi
@@ -113,7 +113,7 @@ __git_prompt() {
 		local GIT_UPSTREAM=""
 	    else
 		local GIT_UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>&1)
-		if [[ "$GIT_UPSTREAM" =~ "No upstream configured" ]]; then
+		if [[ "$GIT_UPSTREAM" =~ "upstream configured" ]]; then
 		    GIT_UPSTREAM=""
 		fi
 	    fi
