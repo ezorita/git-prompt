@@ -100,17 +100,22 @@ __set_exit_code() {
 __git_prompt() {
     if [[ $GIT_PROMPT != 0 ]]; then
 
-	local GIT_BRANCH_STATUS=$(git status -bs 2>&1 | head -1)
+	local GIT_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @ 2>&1)
 
-	if ! [[ "$GIT_BRANCH_STATUS" =~ fatal ]]; then
+	if [[ "$GIT_BRANCH" =~ "Not a git repository" ]]; then
+	    if [[ ${PROMPT_COMMAND} == "__git_prompt" ]]; then
+		PS1=${DEFAULT_PS1}
+	    fi
+	else
 	    PS1=""
-	    # Get branch name and upstream (if any).
-	    if [[ "$GIT_BRANCH_STATUS" =~ \#\#\ ([^\ ]+)\.\.\.([^\ ]+) ]]; then
-		GIT_BRANCH=${BASH_REMATCH[1]}
-		GIT_UPSTREAM=${BASH_REMATCH[2]}
-	    elif [[ "$GIT_BRANCH_STATUS" =~ \#\#\ ([^\ ]+) ]]; then
-		GIT_BRANCH=${BASH_REMATCH[1]}
-		GIT_UPSTREAM=""
+	    if [[ "$GIT_BRANCH" =~ "unknown revision" ]]; then
+		GIT_BRANCH="init"
+		local GIT_UPSTREAM=""
+	    else
+		local GIT_UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>&1)
+		if [[ "$GIT_UPSTREAM" =~ "No upstream configured" ]]; then
+		    GIT_UPSTREAM=""
+		fi
 	    fi
 
 	    local GIT_ROOT=$(git rev-parse --show-toplevel)
@@ -245,9 +250,7 @@ __git_prompt() {
 	    else
 		PS1+="${Prompt_color}\$${Color_Off} "
 	    fi
-	elif [[ ${PROMPT_COMMAND} == "__git_prompt" ]]; then
-	    PS1=${DEFAULT_PS1}
-	fi
+       fi
 	
     elif [[ ${PROMPT_COMMAND} == "__git_prompt" ]]; then
 	PS1=${DEFAULT_PS1}
