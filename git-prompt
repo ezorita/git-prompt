@@ -61,7 +61,7 @@ Prompt_color=${Prompt_color:-$White}
 Prompt_error_color=${Prompt_error_color:-$BRed}
 
 # Prompt parameters
-Force_Default_Prompt=${Force_Default_Prompt:-0}
+Force_Default_Prompt=${Force_Default_Prompt:-1}
 
 # Append __git_prompt() to prompt commands
 GIT_INSTALLED=$(which git)
@@ -227,7 +227,7 @@ __git_prompt() {
 		local GIT_REPO_NAME=${BASH_REMATCH[1]}
 	    fi
 	    GIT_PATH=$GIT_REPO_NAME
-	    if [[ ${PWD} =~ ${GIT_ROOT}(.*$) ]]; then
+	    if [[ $(pwd -P) =~ ${GIT_ROOT}(.*$) ]]; then
 		GIT_PATH+=${BASH_REMATCH[1]}
 	    fi
 
