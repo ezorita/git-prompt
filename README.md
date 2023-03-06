@@ -77,9 +77,7 @@ Parameter                     | Description
 **GIT_AUTOFECTH**             | Enables/disables autofecth (values`1`/`0`) [default `1`]
 **GIT_AUTOFECTH_INTERVAL**    | Autofetch interval (in seconds) [default `600`]
 **Force_Default_Prompt**      | Overwrite the default prompt as well (values `1`/`0`) [default `0`]
-**GIT_SSH_PRIVATE_KEY**       | Set with path to private key file if different than `~/.ssh/id_rsa`, 
-                              | `~/.ssh/id_dsa`, `~/.ssh/id_ecdsa`, `~/.ssh/id_ecdsa_sk`, `~/.ssh/id_ed25519`, 
-                              | or `~/.ssh/id_ed25519_sk`.
+**GIT_SSH_PRIVATE_KEY**       | Set with path to private key file if different than `~/.ssh/id_rsa`, `~/.ssh/id_dsa`, `~/.ssh/id_ecdsa`, `~/.ssh/id_ecdsa_sk`, `~/.ssh/id_ed25519`, or `~/.ssh/id_ed25519_sk`.
 
 
 ### Colors
