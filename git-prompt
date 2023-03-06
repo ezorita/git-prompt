@@ -87,6 +87,7 @@ GIT_PROMPT=${GIT_PROMPT:-1}
 GIT_AUTOFETCH=${GIT_AUTOFETCH:-1}
 GIT_AUTOFETCH_INTERVAL=${GIT_AUTOFETCH_INTERVAL:-600}
 GIT_ONLINE=1
+GIT_SSH_AGENT_STORED=0
 
 # Status variables
 GIT_LAST_ROOT=""
@@ -107,6 +108,13 @@ __git_prompt() {
 		PS1=${DEFAULT_PS1}
 	    fi
 	else
+		if [[ $GIT_SSH_AGENT_STORED == 0 ]]; then
+			echo "Unlock ssh key to automatically fetch changes:"
+			eval `ssh-agent` > /dev/null
+			ssh-add -q $GIT_SSH_PRIVATE_KEY
+			GIT_SSH_AGENT_STORED=1
+		fi
+
 	    PS1=""
 	    if [[ "$GIT_BRANCH" =~ "unknown revision" ]]; then
 		GIT_BRANCH="init"
