@@ -108,7 +108,7 @@ __git_prompt() {
 		PS1=${DEFAULT_PS1}
 	    fi
 	else
-		if [[ $GIT_SSH_AGENT_STORED == 0 ]]; then
+		if [[ $GIT_SSH_AGENT_STORED == 0 && ! -z $SSH_CONNECTION ]]; then
 			echo "Unlock ssh key to automatically fetch changes:"
 			eval `ssh-agent` > /dev/null
 			ssh-add -q $GIT_SSH_PRIVATE_KEY
