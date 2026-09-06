@@ -11,10 +11,15 @@ Easy to install, just two simple steps:
 git clone -q https://github.com/ezorita/git-prompt
 printf "\nsource $(pwd)/git-prompt/git-prompt" >> ~/.bashrc
 ```
-#### MacOS
+#### MacOS (bash)
 ```bash
 git clone -q https://github.com/ezorita/git-prompt
 printf "\nsource $(pwd)/git-prompt/git-prompt" >> ~/.bash_profile
+```
+#### macOS / Linux (zsh)
+```zsh
+git clone -q https://github.com/ezorita/git-prompt
+printf "\nsource $(pwd)/git-prompt/git-prompt.zsh" >> ~/.zshrc
 ```
 
 ## Features
